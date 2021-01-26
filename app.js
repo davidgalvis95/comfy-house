@@ -156,6 +156,28 @@ class UI {
         clearCartBtn.addEventListener('click', () => {
             this.clearCart();
         })
+        //Here we eill use event bubbling to update the inside-cart logic
+        cartContent.addEventListener('click', (event) => {
+            console.log(event.target)
+            if(event.target.classList.contains("remove-item")){
+                let removeItem = event.target;
+                console.log(removeItem);
+                let id = removeItem.dataset.id;
+                console.log(removeItem.parentElement.parentElement);
+                //Here we are updating the DOM
+                cartContent.removeChild(removeItem.parentElement.parentElement);
+                //Updating the localstorage or "back"
+                this.removeItem(id);
+
+            }else if(event.target.classList.contains("fa-chevron-up")){
+                let addAmount = event.target;
+                let id = addAmount.dataset.id;
+                let tempItem = cart.find(item => item.id === id)
+                tempItem.amount = tempItem.amount + 1;
+                Storage.saveCart(cart);
+                this.setCartValues(cart);
+            }
+        })
     }
 
     clearCart(){
