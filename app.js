@@ -1,3 +1,11 @@
+const client = contentful.createClient({
+    // This is the space id. A space is like a project folder in contentful terms
+    space:'',
+    //this is the access token for this space. Normally we get both from the contentful page
+    accessToken:''
+})
+
+
 //variables
 
 const cartBtn = document.querySelector(".cart-btn");
@@ -22,8 +30,19 @@ let buttons = [];
 class Products {
     async getProducts(){
         try{
+
+            // Here's the request we need, to get the contenful objects
+            let contentful = await client.getEntries({
+                // this is the way of filtering put the array of objects by the space where we got the ones we are interested in
+                content_type: "comfyHouseProducts"
+            })
+
+            console.log(contentful);
+
             let result = await fetch('products.json');
             let data = await result.json();
+            // The following request is the ones that is used when performing some request into contentful, mock API
+            // let products = contentful.items;
             let products = data.items;
             products = products.map(item =>{
                 const { title, price } = item.fields;
@@ -164,7 +183,7 @@ class UI {
                 console.log(removeItem);
                 let id = removeItem.dataset.id;
                 console.log(removeItem.parentElement.parentElement);
-                //Here we are updating the DOM
+                //Here we are updating the DOM, by usding event bubbling to move up two parent elements above
                 cartContent.removeChild(removeItem.parentElement.parentElement);
                 //Updating the localstorage or "back"
                 this.removeItem(id);
@@ -172,10 +191,29 @@ class UI {
             }else if(event.target.classList.contains("fa-chevron-up")){
                 let addAmount = event.target;
                 let id = addAmount.dataset.id;
+                console.log(cart);
                 let tempItem = cart.find(item => item.id === id)
                 tempItem.amount = tempItem.amount + 1;
+                console.log(cart);
                 Storage.saveCart(cart);
                 this.setCartValues(cart);
+                const nextSibling = addAmount.nextElementSibling;
+                console.log(nextSibling);
+                nextSibling.innerText = tempItem.amount;
+            }else if(event.target.classList.contains("fa-chevron-down")){
+                let lowerAmount = event.target;
+                let id = lowerAmount.dataset.id;
+                console.log(cart);
+                let tempItem = cart.find(item => item.id === id)
+                tempItem.amount = tempItem.amount - 1;
+                console.log(cart);
+                if(tempItem.amount > 0){
+                    Storage.saveCart(cart);
+                    this.setCartValues(cart);
+                    const previousSibling = addAmount.previousElementSibling;
+                    console.log(previousSibling);
+                    previousSibling.innerText = tempItem.amount;
+                }
             }
         })
     }
